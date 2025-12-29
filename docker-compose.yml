@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  scanner:
+    image: ai-sec-scan:v1
+    build: .  # İmaj yoksa Dockerfile'dan otomatik build et
+    ports:
+      - "8501:8501"
+    volumes:
+      - trivy-data:/root/.cache  # İşte kalıcılık burada!
+    container_name: guvenlik-tarayicisi
+
+# Kalıcı kasanın tanımı
+volumes:
+  trivy-data:
