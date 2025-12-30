@@ -1,0 +1,33 @@
+name: DevSecOps Guvenlik Taramasi 🛡️
+
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  guvenlik-kontrolu:
+    name: Build ve Trivy Analizi
+    runs-on: ubuntu-latest # GitHub'ın sunucusunda çalışmak için
+    
+    steps:
+      
+      - name: Kodu Getir (Checkout)
+        uses: actions/checkout@v3
+
+      
+      - name: Docker Build
+        run: docker build -t guvenlik-testi:${{ github.sha }} .
+
+      # Trivy ile güvenlik taraması
+      - name: Trivy Security Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'guvenlik-testi:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'           # açık olursa hata verir
+          ignore-unfixed: true     # Çözümü olmayanları boş geç
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH' 
