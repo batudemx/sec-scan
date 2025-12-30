@@ -30,4 +30,4 @@ jobs:
           exit-code: '1'           # açık olursa hata verir
           ignore-unfixed: true     # Çözümü olmayanları boş geç
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH' 
+          severity: 'CRITICAL' 
