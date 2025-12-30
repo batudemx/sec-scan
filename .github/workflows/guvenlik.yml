@@ -1,33 +1,65 @@
-name: DevSecOps Guvenlik Taramasi 🛡️
-
+name: DevSecOps CI/CD Pipeline 🚀
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  guvenlik-kontrolu:
-    name: Build ve Trivy Analizi
-    runs-on: ubuntu-latest # GitHub'ın sunucusunda çalışmak için
+  # CI süreci
+  build-and-push:
+    name: Build, Scan & Push
+    runs-on: ubuntu-latest
     
     steps:
-      
-      - name: Kodu Getir (Checkout)
+      - name: Kodu Getir
         uses: actions/checkout@v3
 
-      
-      - name: Docker Build
-        run: docker build -t guvenlik-testi:${{ github.sha }} .
+      - name: Docker Hub'a Giriş Yap
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Trivy ile güvenlik taraması
-      - name: Trivy Security Scan
+      - name: Docker Build (Etiketle)
+        # İmajı hem 'latest' hem de 'commit-id' ile etiketliyoruz
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest .
+
+      - name: Trivy Güvenlik Taraması 🛡️
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'guvenlik-testi:${{ github.sha }}'
+          image-ref: '${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest'
           format: 'table'
-          exit-code: '1'           # açık olursa hata verir
-          ignore-unfixed: true     # Çözümü olmayanları boş geç
+          exit-code: '1'
+          ignore-unfixed: true
           vuln-type: 'os,library'
-          severity: 'CRITICAL' 
+          severity: 'CRITICAL'
+
+      - name: Docker Hub'a Yükle (Push)
+        # Eğer tarama temiz çıkarsa, imajı depoya gönder
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest
+
+  # CD süreci
+  deploy:
+    name: EC2 Sunucusuna Dağıt
+    needs: build-and-push # İlk görev bitmeden bu başlamaz
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH ile Sunucuya Bağlan ve Güncelle
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # 1. Yeni imajı çek
+            docker pull ${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest
+            
+            # 2. Eski konteyneri durdur ve sil (Varsa)
+            docker rm -f guvenlik-uygulamasi || true
+            
+            # 3. Yeni konteyneri başlat (Port 80'den yayınla)
+            docker run -d -p 80:8501 --name guvenlik-uygulamasi --restart unless-stopped ${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest
+            
+            # 4. Gereksiz (eski) imajları temizle
+            docker image prune -f
