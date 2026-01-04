@@ -151,3 +151,5 @@ if 'scan_data' in st.session_state and st.session_state['scan_data'] is not None
 
 else:
     st.info("👈 Analize başlamak için sol taraftan bir imaj adı girin.")
+
+    #CI/CD denemesi için ekledim

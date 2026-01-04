@@ -47,5 +47,5 @@ jobs:
           # 1. Kubernetes'e sistemi yeniden baslatmasini soyle
           sudo kubectl rollout restart deployment/guvenlik-deployment
           
-          # 2. Durumu logla
+          # 2. durumun log kaydını almak içn 
           echo "Guncelleme tetiklendi! Kubernetes yeni imaji cekiyor..."
