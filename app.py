@@ -24,7 +24,6 @@ SEVERITY_COLORS = {
 
 # --- FONKSİYONLAR ---
 def run_trivy_scan(image_name):
-    # Komut
     command = f"trivy image -f json -q --scanners vuln --timeout 15m {image_name}"
     try:
         process = subprocess.run(command, shell=True, capture_output=True, text=True, encoding='utf-8', errors='ignore')
@@ -59,7 +58,7 @@ def process_trivy_data(json_data):
                     })
     return pd.DataFrame(vulnerabilities)
 
-# --- ARAYÜZ (SIDEBAR) ---
+# --- ARAYÜZ ---
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/docker.png", width=80)
     st.title("Container Scanner")
@@ -70,9 +69,7 @@ with st.sidebar:
     
     st.info("Filtreleme yaparken verilerin kaybolmaması için Session State kullanılıyor.")
 
-# --- ANA MANTIK (SESSION STATE) ---
 
-# 1. Eğer butona basılırsa tarama yap ve hafızaya (session_state) kaydet
 if scan_btn:
     with st.spinner("🕵️‍♂️ Trivy analizi yapılıyor..."):
         raw_data = run_trivy_scan(image_input)
@@ -83,7 +80,6 @@ if scan_btn:
             st.session_state['image_name'] = image_input
             st.session_state['scan_time'] = datetime.datetime.now().strftime('%d-%m-%Y %H:%M')
 
-# 2. Eğer hafızada veri varsa, ekrana çiz (Butona basılmasa bile burası çalışır)
 if 'scan_data' in st.session_state and st.session_state['scan_data'] is not None:
     df = st.session_state['scan_data']
     img_name = st.session_state['image_name']
@@ -97,7 +93,6 @@ if 'scan_data' in st.session_state and st.session_state['scan_data'] is not None
     if df.empty:
         st.success("🎉 Temiz! Bu imajda zafiyet bulunamadı.")
     else:
-        # METRİKLER
         total_vulns = len(df)
         critical_count = len(df[df["Ciddiyet"] == "CRITICAL"])
         high_count = len(df[df["Ciddiyet"] == "HIGH"])
@@ -129,17 +124,14 @@ if 'scan_data' in st.session_state and st.session_state['scan_data'] is not None
             top_packages = df["Paket"].value_counts().head(5)
             st.bar_chart(top_packages)
 
-        # TABLO VE FİLTRELEME (Artık bozulmayacak!)
         st.subheader("🔍 Detaylı Analiz")
         
         f1, f2 = st.columns(2)
         with f1:
-            # Multiselect değiştiğinde sayfa yenilenir ama veri session_state'den gelir
             sev_filter = st.multiselect("Seviye:", df["Ciddiyet"].unique(), default=["CRITICAL", "HIGH"])
         with f2:
             only_fixable = st.checkbox("Sadece Yaması Olanlar (Fixable)")
         
-        # Filtreleme Mantığı
         filtered_df = df.copy()
         if sev_filter:
             filtered_df = filtered_df[filtered_df["Ciddiyet"].isin(sev_filter)]

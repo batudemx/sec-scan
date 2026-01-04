@@ -7,9 +7,8 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - trivy-data:/root/.cache  # İşte kalıcılık burada!
+      - trivy-data:/root/.cache  
     container_name: guvenlik-tarayicisi
 
-# Kalıcı kasanın tanımı
 volumes:
   trivy-data:
