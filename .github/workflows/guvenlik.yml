@@ -1,65 +1,51 @@
-name: DevSecOps CI/CD Pipeline 
+name: DevSecOps Kubernetes Pipeline
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  # CI süreci
   build-and-push:
-    name: Build, Scan & Push
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Kodu Getir
-        uses: actions/checkout@v3
+    - name: Kodu Cek
+      uses: actions/checkout@v3
 
-      - name: Docker Hub'a Giriş Yap
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Docker Hub'a Giris Yap
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Build (Etiketle)
-        # İmajı hem 'latest' hem de 'commit-id' ile etiketliyoruz
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest .
+    - name: Imajı Build Et ve Etiketle
+      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/devsecops-proje:latest .
 
-      - name: Trivy Güvenlik Taraması 🛡️
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: '${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest'
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL'
+    - name: Trivy Guvenlik Taramasi (Kritik Aciklar)
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ secrets.DOCKERHUB_USERNAME }}/devsecops-proje:latest'
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
 
-      - name: Docker Hub'a Yükle (Push)
-        # Eğer tarama temiz çıkarsa, imajı depoya gönder
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest
+    - name: Imaji Docker Hub'a Gonder (Push)
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/devsecops-proje:latest
 
-  # CD süreci
-  deploy:
-    name: EC2 Sunucusuna Dağıt
-    needs: build-and-push # İlk görev bitmeden bu başlamaz
+  deploy-to-k8s:
+    needs: build-and-push
     runs-on: ubuntu-latest
-
     steps:
-      - name: SSH ile Sunucuya Bağlan ve Güncelle
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            # 1. Yeni imajı çek
-            docker pull ${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest
-            
-            # 2. Eski konteyneri durdur ve sil (Varsa)
-            docker rm -f guvenlik-uygulamasi || true
-            
-            # 3. Yeni konteyneri başlat (Port 80'den yayınla)
-            docker run -d -p 80:8501 --name guvenlik-uygulamasi --restart unless-stopped ${{ secrets.DOCKER_USERNAME }}/devsecops-proje:latest
-            
-            # 4. Gereksiz (eski) imajları temizle
-            docker image prune -f
+    - name: Kubernetes Sunucusuna Baglan ve Guncelle
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ubuntu
+        key: ${{ secrets.EC2_KEY }}
+        script: |
+          # 1. Kubernetesin sistemi güncellemesi için 
+          sudo kubectl rollout restart deployment/guvenlik-deployment
+          
+          # 2. Durumu kontrol et 
+          echo "Guncelleme tetiklendi! Kubernetes yeni imaji cekiyor..."
