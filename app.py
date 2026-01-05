@@ -86,7 +86,7 @@ if 'scan_data' in st.session_state and st.session_state['scan_data'] is not None
     scan_time = st.session_state['scan_time']
 
     # Başlık Alanı
-    st.title("🛡️ DevSecOps Güvenlik Paneli")
+    st.title("🛡️ BATUHAN Güvenlik Paneli")
     st.markdown(f"**Hedef İmaj:** `{img_name}` | **Tarih:** {scan_time}")
     st.divider()
 
