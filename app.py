@@ -136,7 +136,7 @@ if 'scan_data' in st.session_state and st.session_state['scan_data'] is not None
         if sev_filter:
             filtered_df = filtered_df[filtered_df["Ciddiyet"].isin(sev_filter)]
         if only_fixable:
-            filtered_df = filtered_df[filtered_df["Düzeltilmiş Sürüm"] != "Yama Yok ❌"]
+            filtered_df = filtered_df[filtered_df["Düzeltilmiş Sürüm"] != "Yama VAR ❌"]
         
         st.dataframe(
             filtered_df,
