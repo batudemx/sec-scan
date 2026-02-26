@@ -38,9 +38,10 @@ Geleneksel (manuel) dağıtım yöntemleriyle karşılaştırıldığında bu pr
 * Servis kesinti süresini (Downtime) **sıfır (0)** saniyeye indirmiştir.
 
 ### Kesintisiz Dağıtım Kanıtı (Rolling Update in Action)
-*(Buraya terminalden aldığın, eski podların `Running` durumundayken yeni podların `ContainerCreating` statüsünde olduğunu gösteren o harika ekran görüntüsünü eklemelisin. Dosya adını `images/rolling-update.png` gibi ayarlayabilirsin.)*
+<img width="822" height="350" alt="image" src="https://github.com/user-attachments/assets/d60d48de-8ac0-48a6-984f-519326490828" />
 
-![Zero Downtime Deployment](images/senin-ekran-goruntun.png)
+
+
 
 ##  Kurulum ve Çalıştırma
 
