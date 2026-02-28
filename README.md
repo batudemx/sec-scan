@@ -18,7 +18,7 @@ Bu proje, modern yazılım geliştirme süreçlerinde **hız** ve **güvenliği*
 * **Güvenlik Taraması:** Aqua Security Trivy
 * **Arayüz (Frontend):** Python tabanlı Streamlit SPA
 
-## ⚙️ Sistem Mimarisi ve İş Akışı
+##  Sistem Mimarisi ve İş Akışı
 
 Sistem, bir geliştiricinin `main` dalına kod göndermesiyle (push) tetiklenir ve aşağıdaki adımları otonom olarak gerçekleştirir:
 
@@ -43,10 +43,3 @@ Geleneksel (manuel) dağıtım yöntemleriyle karşılaştırıldığında bu pr
 
 
 
-##  Kurulum ve Çalıştırma
-
-Bu projeyi kendi ortamınızda test etmek isterseniz:
-
-1. Bu repoyu klonlayın:
-   ```bash
-   git clone [https://github.com/kullaniciadin/reponun-adi.git](https://github.com/kullaniciadin/reponun-adi.git)
